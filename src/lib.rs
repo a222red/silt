@@ -114,11 +114,11 @@ impl<T: 'static> Signal<T> {
     }
 
     //TODO: Change update semantics to pass-by-value
-    pub fn update(&self, f: impl FnOnce(&T) -> T) {
+    pub fn update<F: FnOnce(&T) -> T>(&self, f: F) {
         self.set(f(self.get()));
     }
 
-    pub fn mutate_with(&self, f: impl FnOnce(&mut T)) {
+    pub fn mutate_with<F: FnOnce(&mut T)>(&self, f: F) {
         f(self.ctx.signal_values.borrow()[self.id]
             .borrow_mut().value.downcast_mut::<T>().unwrap()
         );
