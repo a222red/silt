@@ -113,7 +113,14 @@ impl<T: 'static> Signal<T> {
         }
     }
 
+    //TODO: Change update semantics to pass-by-value
     pub fn update(&self, f: impl FnOnce(&T) -> T) {
         self.set(f(self.get()));
+    }
+
+    pub fn mutate_with(&self, f: impl FnOnce(&mut T)) {
+        f(self.ctx.signal_values.borrow()[self.id]
+            .borrow_mut().value.downcast_mut::<T>().unwrap()
+        );
     }
 }
