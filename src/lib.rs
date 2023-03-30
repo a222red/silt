@@ -106,13 +106,19 @@ impl<T: 'static> Signal<T> {
         };
     }
 
+    fn rerun_subs(&self) {
+        for sub in &self.ctx.signal_values.borrow()[
+            self.id
+        ].borrow().subscribers {
+            self.ctx.run_effect(*sub);
+        }
+    }
+
     pub fn set(&self, value: T) {
         *self.ctx.signal_values.borrow()[self.id]
             .borrow_mut().value.downcast_mut::<T>().unwrap() = value;
 
-        for sub in &self.ctx.signal_values.borrow()[self.id].borrow().subscribers {
-            self.ctx.run_effect(*sub);
-        }
+        self.rerun_subs();
     }
 
     //TODO: Change update semantics to pass-by-value
@@ -123,11 +129,15 @@ impl<T: 'static> Signal<T> {
                 as *const T
             )
         }));
+
+        self.rerun_subs();
     }
 
     pub fn mutate_with<F: FnOnce(&mut T)>(&self, f: F) {
         f(self.ctx.signal_values.borrow()[self.id]
             .borrow_mut().value.downcast_mut::<T>().unwrap()
         );
+
+        self.rerun_subs();
     }
 }
