@@ -37,13 +37,14 @@ use crate::*;
     let times_run_cloned = times_run.clone();
 
     ctx.create_effect(Box::new(move || {
-        if *times_run_cloned.as_ref().borrow() == 0 { sub.get(); }
+        if *times_run_cloned.as_ref().borrow() < 2 { sub.get(); }
 
         *times_run_cloned.borrow_mut() += 1;
     }));
 
     sub.set("Value changed!"); // Effect should rerun here
-    sub.set("Value changed again!"); // Effect shouldn't rerun here
+    sub.set("Value changed again!"); // Effect should also rerun here
+    sub.set("Value changed for a third time!"); // Effect shouldn't rerun here
 
-    assert_eq!(*times_run.borrow(), 2);
+    assert_eq!(*times_run.borrow(), 3);
 }
