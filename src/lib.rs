@@ -114,8 +114,13 @@ impl<T: 'static> Signal<T> {
     }
 
     //TODO: Change update semantics to pass-by-value
-    pub fn update<F: FnOnce(&T) -> T>(&self, f: F) {
-        self.set(f(self.get()));
+    pub fn update<F: FnOnce(T) -> T>(&self, f: F) {
+        self.set(f(unsafe {
+            std::ptr::read((*self.ctx.signal_values.borrow()[self.id]
+                .as_ptr()).value.downcast_ref::<T>().unwrap()
+                as *const T
+            )
+        }));
     }
 
     pub fn mutate_with<F: FnOnce(&mut T)>(&self, f: F) {
