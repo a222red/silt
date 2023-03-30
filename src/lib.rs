@@ -77,7 +77,7 @@ impl Runtime {
             }
         }
         unsafe {
-            (*self.effects.borrow_mut()[id].as_ptr())
+            (*self.effects.borrow()[id].as_ptr())
                 .subscriptions.clear();
         }
 
@@ -122,8 +122,11 @@ impl<T: 'static> Signal<T> {
     }
 
     pub fn set(&self, value: T) {
-        *self.ctx.signal_values.borrow()[self.id]
-            .borrow_mut().value.downcast_mut::<T>().unwrap() = value;
+        unsafe {
+            *((*self.ctx.signal_values.borrow()[self.id]
+                .as_ptr()).value.downcast_ref::<T>().unwrap()
+                as *const T as *mut T) = value;
+        }
 
         self.rerun_subs();
     }
