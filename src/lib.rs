@@ -21,8 +21,8 @@ struct SignalValue {
 
 struct Effect {
     /// Set of all signals that this effect is subscribed to,
-    /// exists so that the signal can efficiently unsubscribe from all signals
-    /// before it is rerun
+    /// exists so that the signal can efficiently unsubscribe
+    /// from all signals before it is rerun
     subscriptions: HashSet<SignalId>,
     value: Box<dyn Fn()>
 }
@@ -42,11 +42,14 @@ impl Runtime {
         }
     }
 
-    pub fn create_signal<T: 'static>(&'static self, value: T) -> Signal<T> {
-        let id = self.signal_values.borrow_mut().insert(RefCell::new(SignalValue {
-            subscribers: HashSet::new(),
-            value: Box::new(value)
-        }));
+    pub fn create_signal<T: 'static>(
+        &'static self, value: T
+    ) -> Signal<T> {
+        let id = self.signal_values.borrow_mut()
+            .insert(RefCell::new(SignalValue {
+                subscribers: HashSet::new(),
+                value: Box::new(value)
+            }));
 
         return Signal {
             ctx: self,
@@ -73,7 +76,10 @@ impl Runtime {
                     .subscribers.remove(&id);
             }
         }
-        unsafe { (*self.effects.borrow_mut()[id].as_ptr()).subscriptions.clear(); }
+        unsafe {
+            (*self.effects.borrow_mut()[id].as_ptr())
+                .subscriptions.clear();
+        }
 
         (self.effects.borrow()[id].borrow().value)();
 
@@ -100,7 +106,8 @@ impl<T: 'static> Signal<T> {
         }
 
         return unsafe {
-            (*self.ctx.signal_values.borrow()[self.id].as_ptr()).value.as_ref()
+            (*self.ctx.signal_values.borrow()[self.id].as_ptr())
+                .value.as_ref()
                 .downcast_ref()
                 .unwrap()
         };
