@@ -1,3 +1,5 @@
+#[cfg(test)] mod tests;
+
 use std::{
     cell::{RefCell, Cell},
     any::Any,
@@ -127,52 +129,5 @@ impl<T: 'static> Signal<T> {
         f(self.ctx.signal_values.borrow()[self.id]
             .borrow_mut().value.downcast_mut::<T>().unwrap()
         );
-    }
-}
-
-#[cfg(test)] mod tests {
-    use super::*;
-
-    #[test] fn test_signal_get() {
-        let ctx = Box::leak(Box::new(Runtime::new()));
-
-        let s = ctx.create_signal(42);
-
-        assert_eq!(s.get(), &42);
-    }
-
-    #[test] fn test_signal_set() {
-        let ctx = Box::leak(Box::new(Runtime::new()));
-
-        let s = ctx.create_signal("foo");
-
-        s.set("bar");
-
-        assert_eq!(s.get(), &"bar");
-    }
-
-    #[test] fn test_signal_update() {
-        let ctx = Box::leak(Box::new(Runtime::new()));
-
-        let s = ctx.create_signal(3);
-
-        let cube = |x| x * x * x;
-
-        s.update(cube);
-
-        assert_eq!(s.get(), &27)
-    }
-
-    #[test] fn test_signal_mutate_with() {
-        let ctx = Box::leak(Box::new(Runtime::new()));
-
-        let s = ctx.create_signal(6);
-
-        let b = Box::leak(Box::new(7));
-
-        s.mutate_with(|v| std::mem::swap(v, b));
-
-        assert_eq!(s.get(), &7);
-        assert_eq!(*b, 6);
     }
 }
